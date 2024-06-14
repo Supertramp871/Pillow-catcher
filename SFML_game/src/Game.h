@@ -18,6 +18,7 @@ class Game
 {
 private:
 	// Variables
+	bool isGameOver;
 
 	// Window
 	sf::RenderWindow* window;
@@ -80,6 +81,7 @@ public:
 	unsigned getPoints();
 	int generateRandomNumber(int min, int max, int lastNumber, int minDifference);
 	void run();
+	void restartGame();
 	void updatePoolEvents();
 	void updateInput();
 	void updateGUI();

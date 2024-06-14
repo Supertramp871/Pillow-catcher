@@ -1,12 +1,12 @@
 #include <iostream>
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
-#include "Game.h" // Предполагается, что у вас есть заголовочный файл для класса Game
+#include "Game.h" 
 
-// Функция для отображения меню
+// Function for displaying menu
 int showMenu(sf::RenderWindow& window, sf::Font& font, sf::Sprite& background, sf::Sound& navigateSound);
 
-// Функция для отображения информации об игре
+// Function to display game information
 void showInfo(sf::RenderWindow& window, sf::Font& font, sf::Sprite& background);
 
 int main()
@@ -16,17 +16,17 @@ int main()
 
     sf::RenderWindow window(sf::VideoMode(450, 750), "Game Menu", sf::Style::Close | sf::Style::Titlebar);
 
-    // Текст
+    // Text
     sf::Font font;
-    if (!font.loadFromFile("res/font/font.ttf")) // Замените на путь к вашему шрифту
+    if (!font.loadFromFile("res/font/font.ttf"))
     {
-        std::cerr << "Ошибка загрузки шрифта" << std::endl;
+        std::cerr << "Font loading error" << std::endl;
         return -1;
     }
 
     // Фон
     sf::Texture backgroundMenuTexture;
-    if (!backgroundMenuTexture.loadFromFile("res/gfx/Fon_menyu.png")) // фон меню
+    if (!backgroundMenuTexture.loadFromFile("res/gfx/Fon_menyu.png")) // menu background
     {
         std::cerr << "Ошибка загрузки фона" << std::endl;
         return -1;
@@ -35,9 +35,9 @@ int main()
     sf::Sprite backgroundMenu(backgroundMenuTexture);
 
     sf::Texture backgroundInfoTexture;
-    if (!backgroundInfoTexture.loadFromFile("res/gfx/Fon_igry.png")) // фон игры
+    if (!backgroundInfoTexture.loadFromFile("res/gfx/Fon_igry.png")) // game background
     {
-        std::cerr << "Ошибка загрузки фона" << std::endl;
+        std::cerr << "Error loading background" << std::endl;
         return -1;
     }
 
@@ -45,25 +45,14 @@ int main()
 
     // Аудио
     sf::SoundBuffer navigateBuffer;
-    if (!navigateBuffer.loadFromFile("res/sfx/minimenu.wav")) // звук переключения
+    if (!navigateBuffer.loadFromFile("res/sfx/minimenu.wav")) // switching sound
     {
-        std::cerr << "Ошибка загрузки звука переключения" << std::endl;
+        std::cerr << "Error loading switching sound" << std::endl;
         return -1;
     }
 
     sf::Sound navigateSound;
     navigateSound.setBuffer(navigateBuffer);
-
-    sf::SoundBuffer gameStartBuffer;
-    if (!gameStartBuffer.loadFromFile("res/sfx/gamestart.wav")) // звук начала игры
-    {
-        std::cerr << "Ошибка загрузки звука запуска игры" << std::endl;
-        return -1;
-    }
-
-    sf::Sound gameStartSound;
-    gameStartSound.setBuffer(gameStartBuffer);
-
 
     while (window.isOpen())
     {
@@ -71,7 +60,6 @@ int main()
 
         if (menuChoice == 0)
         {
-            gameStartSound.play();
             Game game;
             game.run();
         }
@@ -88,7 +76,7 @@ int main()
     return 0;
 }
 
-// Функция для отображения меню
+// Function for displaying menu
 int showMenu(sf::RenderWindow& window, sf::Font& font, sf::Sprite& background, sf::Sound& navigateSound)
 {
     sf::Text menu[3];
@@ -100,10 +88,10 @@ int showMenu(sf::RenderWindow& window, sf::Font& font, sf::Sprite& background, s
         menu[i].setFont(font);
         menu[i].setCharacterSize(40);
         menu[i].setString(menuItems[i]);
-        menu[i].setPosition(200, 230 + i * 50);
+        menu[i].setPosition(200.f, 230.f + i * 50.f);
     }
 
-    int selectedItem = 0; // Начальный выбранный элемент меню
+    int selectedItem = 0; // Initial selected menu item
 
     while (window.isOpen())
     {
@@ -134,10 +122,10 @@ int showMenu(sf::RenderWindow& window, sf::Font& font, sf::Sprite& background, s
 
         window.clear();
 
-        // Отрисовка фона
+        // Background rendering
         window.draw(background);
 
-        // Отрисовка меню
+        // Menu rendering
         for (int i = 0; i < 3; ++i)
         {
             if (i == selectedItem)
@@ -151,10 +139,10 @@ int showMenu(sf::RenderWindow& window, sf::Font& font, sf::Sprite& background, s
         window.display();
     }
 
-    return -1; // Если окно закрыто, возвращаем -1
+    return -1;
 }
 
-// Функция для отображения информации об игре
+// Function to display game information
 void showInfo(sf::RenderWindow& window, sf::Font& font, sf::Sprite& background)
 {
     sf::Text infoText;
@@ -174,16 +162,16 @@ void showInfo(sf::RenderWindow& window, sf::Font& font, sf::Sprite& background)
 
             if (event.type == sf::Event::KeyPressed)
             {
-                return; // Возвращаемся в меню
+                return; // Returning to the menu
             }
         }
 
         window.clear();
 
-        // Отрисовка фона
+        // Background rendering
         window.draw(background);
 
-        // Отрисовка текста с информацией
+        // Rendering text with information
         window.draw(infoText);
         window.display();
     }

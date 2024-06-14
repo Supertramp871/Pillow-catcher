@@ -5,7 +5,7 @@ void Player::initVariables()
 {
 	this->movementSpeed = 1.3f;
 
-	this->hpMax = 3;
+	this->hpMax = 3000;
 	this->hp = this->hpMax;
 	this->movingRight = true;
 }
@@ -118,6 +118,8 @@ void Player::update()
 
 	float dirX = 0.f;
 	float dirY = 0.f;
+	bool leftPressed = sf::Keyboard::isKeyPressed(sf::Keyboard::Left);
+	bool rightPressed = sf::Keyboard::isKeyPressed(sf::Keyboard::Right);
 
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
 	{
@@ -126,6 +128,10 @@ void Player::update()
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
 	{
 		dirX = 1.f;
+	}
+	if (leftPressed && rightPressed)
+	{
+		dirX = 0.f;
 	}
 
 	this->move(dirX);

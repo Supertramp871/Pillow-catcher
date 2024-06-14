@@ -89,19 +89,19 @@ void Game::initSounds()
 {
 	if (!this->healthLossBuffer.loadFromFile("res/sfx/minecraft-death-sound.wav"))
 	{
-		std::cerr << "Ошибка загрузки звука потери здоровья" << std::endl;
+		std::cerr << "Error loading health loss sound" << std::endl;
 	}
 	this->healthLossSound.setBuffer(this->healthLossBuffer);
 
 	if (!this->pointIncreaseBuffer.loadFromFile("res/sfx/sfx-5.wav"))
 	{
-		std::cerr << "Ошибка загрузки звука увеличения очков" << std::endl;
+		std::cerr << "Error loading score increase sound" << std::endl;
 	}
 	this->pointIncreaseSound.setBuffer(this->pointIncreaseBuffer);
 	this->pointIncreaseSound.setVolume(30); // Установка громкости звука увеличения очков (значение от 0 до 100)
 }
 
-// Constructor / Destructor
+// Constructor / Destructor 
 Game::Game()
 {
 	this->initWindow();
@@ -114,6 +114,7 @@ Game::Game()
 	this->initEnemies();
 	this->initSounds();
 	this->lastRandomNumber = 0; // Initial value
+	this->isGameOver = false;
 }
 
 Game::~Game()
@@ -168,8 +169,6 @@ void Game::updatePoolEvents()
 	{
 		if (e.Event::type == sf::Event::Closed)
 			this->window->close();
-		if (e.Event::KeyPressed && e.Event::key.code == sf::Keyboard::Escape)
-			this->window->close();
 	}
 }
 
@@ -181,6 +180,35 @@ void Game::updateInput()
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
 		this->player->move(0.5f);
 }
+
+void Game::restartGame()
+{
+	// Reset player stats
+	this->player->setHp(this->player->getHpMax());
+	this->points = 0;
+
+	// Reset player position (assuming there's a method for setting position)
+	this->player->setPosition(sf::Vector2f(this->window->getSize().x / 2.f, this->window->getSize().y - 100.f));
+
+	// Clear existing entities (assuming you have a container for enemies, bullets, etc.)
+	this->enemies.clear();
+
+	// Reset GUI elements
+	std::stringstream ss;
+	ss << "Points: " << this->points;
+	this->pointText.setString(ss.str());
+
+	float hpPercent = static_cast<float>(this->player->getHp()) / this->player->getHpMax();
+	this->playerHpBar.setSize(sf::Vector2f(250.f * hpPercent, this->playerHpBar.getSize().y));
+
+	// Remove game over screen elements
+	this->gameOverText.setString("");
+	this->gameOverBackground.setSize(sf::Vector2f(0.f, 0.f));
+
+	// Restart the game loop
+	this->isGameOver = false;
+}
+
 
 void Game::updateGUI()
 {
@@ -203,10 +231,100 @@ void Game::updateGUI()
 		// Update game over background size and position
 		this->gameOverBackground.setSize(sf::Vector2f(this->gameOverText.getGlobalBounds().width + 40.f, this->gameOverText.getGlobalBounds().height + 40.f));
 		this->gameOverBackground.setPosition(
-			this->window->getSize().x / 2.f - this->gameOverText.getGlobalBounds().width / 2.f-10.f,
-			this->window->getSize().y / 2.f - this->gameOverText.getGlobalBounds().height / 2.f-90.f);
+			this->window->getSize().x / 2.f - this->gameOverText.getGlobalBounds().width / 2.f - 10.f,
+			this->window->getSize().y / 2.f - this->gameOverText.getGlobalBounds().height / 2.f - 90.f);
+
+		// Create menu options for game over screen
+		sf::Text menu[3];
+		std::string menuItems[3] = { "Restart", "Exit to menu", "Exit" };
+
+		// Audio
+		sf::SoundBuffer navigateBuffer;
+		if (!navigateBuffer.loadFromFile("res/sfx/minimenu.wav")) // switching sound
+		{
+			std::cerr << "Error loading switching sound" << std::endl;
+		}
+
+		sf::Sound navigateSound;
+		navigateSound.setBuffer(navigateBuffer);
+		
+
+		for (int i = 0; i < 3; ++i)
+		{
+			menu[i].setFont(this->font); // Assuming you have a font member variable
+			menu[i].setCharacterSize(40);
+			menu[i].setString(menuItems[i]);
+			menu[i].setPosition(this->window->getSize().x / 2.f - this->gameOverText.getGlobalBounds().width / 2.f,
+				this->window->getSize().y / 2.f + 50.f + i * 50.f); // Positioning below the game over text
+		}
+
+		int selectedItem = 0; // Initial selected menu item
+
+		while (this->window->isOpen())
+		{
+			sf::Event event;
+			while (this->window->pollEvent(event))
+			{
+				if (event.type == sf::Event::Closed)
+					this->window->close();
+
+				if (event.type == sf::Event::KeyPressed)
+				{
+					if (event.key.code == sf::Keyboard::Up)
+					{
+						selectedItem = (selectedItem - 1 + 3) % 3;
+						navigateSound.play();
+					}
+					else if (event.key.code == sf::Keyboard::Down)
+					{
+						selectedItem = (selectedItem + 1) % 3;
+						navigateSound.play();
+					}
+					else if (event.key.code == sf::Keyboard::Enter)
+					{	
+						switch (selectedItem)
+						{
+						case 0:
+							// Handle Restart
+							this->restartGame();
+
+							return;
+						case 1:
+							// Handle Exit to menu
+							this->window->close();
+							return;
+						case 2:
+							// Handle Exit
+							exit(0);
+						}
+					}
+				}
+			}
+
+			this->window->clear();
+
+			// Background rendering
+			this->window->draw(this->gameOverBackground);
+
+			// Game over text rendering
+			this->window->draw(this->gameOverText);
+
+			// Menu rendering
+			for (int i = 0; i < 3; ++i)
+			{
+				if (i == selectedItem)
+					menu[i].setFillColor(sf::Color::Red);
+				else
+					menu[i].setFillColor(sf::Color::White);
+
+				this->window->draw(menu[i]);
+			}
+
+			this->window->display();
+		}
 	}
 }
+
 
 void Game::updateWorld()
 {
@@ -241,7 +359,7 @@ void Game::updateEnemies()
 		int minDifference = 160;
 		int randomYPosition = generateRandomNumber(min, max, this->lastRandomNumber, minDifference);
 
-		this->enemies.push_back(new Enemy(randomYPosition, -10.f));
+		this->enemies.push_back(new Enemy(static_cast<float>(randomYPosition), -10.f));
 		this->spawnTimer = 0.f;
 
 		// Update the last random number
@@ -355,4 +473,3 @@ void Game::render()
 
 	this->window->display();
 }
-
