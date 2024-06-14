@@ -5,7 +5,7 @@ void Player::initVariables()
 {
 	this->movementSpeed = 1.3f;
 
-	this->hpMax = 3000;
+	this->hpMax = 3;
 	this->hp = this->hpMax;
 	this->movingRight = true;
 }
