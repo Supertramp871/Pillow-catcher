@@ -229,10 +229,10 @@ void Game::updateGUI()
 		this->gameOverText.setString(ss.str());
 
 		// Update game over background size and position
-		this->gameOverBackground.setSize(sf::Vector2f(this->gameOverText.getGlobalBounds().width + 40.f, this->gameOverText.getGlobalBounds().height + 40.f));
-		this->gameOverBackground.setPosition(
-			this->window->getSize().x / 2.f - this->gameOverText.getGlobalBounds().width / 2.f - 10.f,
-			this->window->getSize().y / 2.f - this->gameOverText.getGlobalBounds().height / 2.f - 90.f);
+		//this->gameOverBackground.setSize(sf::Vector2f(this->gameOverText.getGlobalBounds().width + 40.f, this->gameOverText.getGlobalBounds().height + 40.f));
+		//this->gameOverBackground.setPosition(
+		//	this->window->getSize().x / 2.f - this->gameOverText.getGlobalBounds().width / 2.f - 10.f,
+		//	this->window->getSize().y / 2.f - this->gameOverText.getGlobalBounds().height / 2.f - 90.f);
 
 		// Create menu options for game over screen
 		sf::Text menu[3];
@@ -304,7 +304,7 @@ void Game::updateGUI()
 			this->window->clear();
 
 			// Background rendering
-			this->window->draw(this->gameOverBackground);
+			this->window->draw(this->worldBackground);
 
 			// Game over text rendering
 			this->window->draw(this->gameOverText);
