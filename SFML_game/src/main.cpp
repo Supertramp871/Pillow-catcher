@@ -93,6 +93,7 @@ int showMenu(sf::RenderWindow& window, sf::Font& font, sf::Sprite& background, s
 {
     sf::Text menu[3];
     std::string menuItems[3] = { "Play", "Info", "Exit" };
+    window.setMouseCursorVisible(false);
 
     for (int i = 0; i < 3; ++i)
     {
