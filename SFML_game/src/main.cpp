@@ -160,7 +160,7 @@ void showInfo(sf::RenderWindow& window, sf::Font& font, sf::Sprite& background)
     infoText.setFont(font);
     infoText.setCharacterSize(28);
     infoText.setFillColor(sf::Color::White);
-    infoText.setString("Author: Yushin Alexander O738B. \n\nCatch all the notes and emoticons.\n\nPress Left - to move left.\n\nPress Right to move right.\n\nPress any key to return to the menu.");
+    infoText.setString("Author: Yushin Alexander O738B. \n\nCatch all the notes and emoticons.\n\nPress Left - to move left.\n\nPress Right - to move right.\n\nPress any key to return to the menu.");
     infoText.setPosition(40, 50);
 
     while (window.isOpen())
