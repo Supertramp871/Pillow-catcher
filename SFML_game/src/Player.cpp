@@ -137,7 +137,7 @@ void Player::update()
 	this->move(dirX);
 }
 
-void Player::render(sf::RenderTarget& target)
+void Player::render(sf::RenderTarget& target) const
 {
 	target.draw(this->sprite);
 }

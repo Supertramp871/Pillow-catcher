@@ -51,7 +51,7 @@ public:
 	void move(const float dirX);
 
 	void update();
-	void render(sf::RenderTarget& target);
+	void render(sf::RenderTarget& target) const;
 
 	// Signal for health loss
 	std::function<void()> onHealthLoss;

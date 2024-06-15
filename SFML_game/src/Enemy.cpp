@@ -77,7 +77,7 @@ void Enemy::update()
 	this->sprite.move(0.f, this->speed);
 }
 
-void Enemy::render(sf::RenderTarget* target)
+void Enemy::render(sf::RenderTarget* target) const
 {
 	target->draw(this->sprite);
 }
