@@ -1,3 +1,4 @@
+
 #pragma once
 
 #include <iostream>
@@ -17,8 +18,13 @@
 class Game
 {
 private:
+	// Enums
+	enum class GameState { MENU, INFO, PLAYING, EXIT };
+
 	// Variables
 	bool isGameOver;
+	GameState state;
+	int selectedItem;
 
 	// Window
 	sf::RenderWindow* window;
@@ -48,9 +54,19 @@ private:
 
 	sf::RectangleShape gameOverBackground;
 
+	// Menu
+	sf::Text menu[3];
+	sf::Sprite backgroundMenu;
+	sf::Sprite backgroundInfo;
+	sf::SoundBuffer navigateSoundBuffer;
+	sf::Sound navigateSound;
+
 	//World
 	sf::Texture worldBackgroundTex;
 	sf::Sprite worldBackground;
+	sf::Texture backgroundMenuTexture;
+	sf::Texture backgroundInfoTexture;
+
 
 	//Systems
 	unsigned points;
@@ -71,6 +87,11 @@ private:
 	void initPlayer();
 	void initEnemies();
 	void initSounds();
+	void initMenu();
+	void processMenuEvents();
+	void processInfoEvents();
+	void renderMenu();
+	void renderInfo();
 
 public:
 	// Constructor / Destructor
@@ -94,4 +115,3 @@ public:
 	void renderWorld();
 	void render();
 };
-

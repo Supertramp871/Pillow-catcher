@@ -1,4 +1,4 @@
-#include "Game.h"
+п»ї#include "Game.h"
 
 //Private functions
 void Game::initWindow()
@@ -36,22 +36,22 @@ void Game::initGUI()
 	this->gameOverText.setString("Game Over!");
 	this->gameOverText.setPosition(
 		this->window->getSize().x / 2.f - this->gameOverText.getGlobalBounds().width / 2.f,
-		this->window->getSize().y / 2.f - this->gameOverText.getGlobalBounds().height / 2.f-150.f);
+		this->window->getSize().y / 2.f - this->gameOverText.getGlobalBounds().height / 2.f - 150.f);
 
 	// Init game over background
 	this->gameOverBackground.setSize(sf::Vector2f(this->gameOverText.getGlobalBounds().width + 20.f, this->gameOverText.getGlobalBounds().height + 40.f));
 	this->gameOverBackground.setFillColor(sf::Color::Black);
 	this->gameOverBackground.setPosition(
-		this->window->getSize().x / 2.f - this->gameOverText.getGlobalBounds().width / 2.f-10.f,
+		this->window->getSize().x / 2.f - this->gameOverText.getGlobalBounds().width / 2.f - 10.f,
 		this->window->getSize().y / 2.f - this->gameOverText.getGlobalBounds().height / 2.f - 90.f);
 
 	//Init player GUI
 	this->playerHpBar.setSize(sf::Vector2f(250.f, 20.f));
 	this->playerHpBar.setFillColor(sf::Color::Red);
 	this->playerHpBar.setPosition(sf::Vector2f(20.f, 20.f));
-	
+
 	this->playerHpBarBack = this->playerHpBar;
-	this->playerHpBarBack.setFillColor(sf::Color(25,25,25,200));
+	this->playerHpBarBack.setFillColor(sf::Color(25, 25, 25, 200));
 }
 
 void Game::initWorld()
@@ -73,10 +73,10 @@ void Game::initPlayer()
 {
 	this->player = new Player();
 	this->player->onHealthLoss = [&]()
-	{
-		this->healthLossSound.play();
-	};
-	this->player->setPostion(170, 600);
+		{
+			this->healthLossSound.play();
+		};
+	this->player->setPostion(190, 600);
 }
 
 void Game::initEnemies()
@@ -98,7 +98,13 @@ void Game::initSounds()
 		std::cerr << "Error loading score increase sound" << std::endl;
 	}
 	this->pointIncreaseSound.setBuffer(this->pointIncreaseBuffer);
-	this->pointIncreaseSound.setVolume(30); // Установка громкости звука увеличения очков (значение от 0 до 100)
+	this->pointIncreaseSound.setVolume(30); 
+
+	if (!this->navigateSoundBuffer.loadFromFile("res/sfx/minimenu.wav"))
+	{
+		std::cerr << "Error loading score increase sound" << std::endl;
+	}
+	this->navigateSound.setBuffer(this->navigateSoundBuffer);
 }
 
 // Constructor / Destructor 
@@ -113,8 +119,10 @@ Game::Game()
 	this->initPlayer();
 	this->initEnemies();
 	this->initSounds();
+	this->initMenu();
 	this->lastRandomNumber = 0; // Initial value
 	this->isGameOver = false;
+	this->selectedItem = 0;
 }
 
 Game::~Game()
@@ -154,11 +162,24 @@ void Game::run()
 {
 	while (this->window->isOpen())
 	{
-		this->updatePoolEvents();
-		if(this->player->getHp() > 0)
+		switch (this->state)
+		{
+		case GameState::MENU:
+			this->processMenuEvents();
+			this->renderMenu();
+			break;
+		case GameState::INFO:
+			this->processInfoEvents();
+			this->renderInfo();
+			break;
+		case GameState::PLAYING:
 			this->update();
-
-		this->render();
+			this->render();
+			break;
+		case GameState::EXIT:
+			this->window->close();
+			break;
+		}
 	}
 }
 
@@ -188,7 +209,7 @@ void Game::restartGame()
 	this->points = 0;
 
 	// Reset player position (assuming there's a method for setting position)
-	this->player->setPosition(sf::Vector2f(this->window->getSize().x / 2.f, this->window->getSize().y - 100.f));
+	this->player->setPostion(190, 600);
 
 	// Clear existing entities (assuming you have a container for enemies, bullets, etc.)
 	this->enemies.clear();
@@ -228,12 +249,6 @@ void Game::updateGUI()
 		ss << "Game Over!\nYour score:\n\t   " << this->points;
 		this->gameOverText.setString(ss.str());
 
-		// Update game over background size and position
-		//this->gameOverBackground.setSize(sf::Vector2f(this->gameOverText.getGlobalBounds().width + 40.f, this->gameOverText.getGlobalBounds().height + 40.f));
-		//this->gameOverBackground.setPosition(
-		//	this->window->getSize().x / 2.f - this->gameOverText.getGlobalBounds().width / 2.f - 10.f,
-		//	this->window->getSize().y / 2.f - this->gameOverText.getGlobalBounds().height / 2.f - 90.f);
-
 		// Create menu options for game over screen
 		sf::Text menu[3];
 		std::string menuItems[3] = { "Restart", "Exit to menu", "Exit" };
@@ -247,7 +262,7 @@ void Game::updateGUI()
 
 		sf::Sound navigateSound;
 		navigateSound.setBuffer(navigateBuffer);
-		
+
 
 		for (int i = 0; i < 3; ++i)
 		{
@@ -281,7 +296,7 @@ void Game::updateGUI()
 						navigateSound.play();
 					}
 					else if (event.key.code == sf::Keyboard::Enter)
-					{	
+					{
 						switch (selectedItem)
 						{
 						case 0:
@@ -291,11 +306,13 @@ void Game::updateGUI()
 							return;
 						case 1:
 							// Handle Exit to menu
-							this->window->close();
+							// Handle Exit to menu
+							this->state = GameState::MENU;
+							this->restartGame();
 							return;
 						case 2:
 							// Handle Exit
-							exit(0);
+							this->window->close();
 						}
 					}
 				}
@@ -331,6 +348,36 @@ void Game::updateWorld()
 
 }
 
+void Game::initMenu()
+{
+	// Load font and set up menu texts
+	if (!this->font.loadFromFile("res/font/font.ttf"))
+	{
+		std::cerr << "Error loading font" << std::endl;
+	}
+
+	std::string menuItems[3] = { "Play", "Info", "Exit" };
+	for (int i = 0; i < 3; ++i)
+	{
+		this->menu[i].setFont(this->font);
+		this->menu[i].setCharacterSize(40);
+		this->menu[i].setString(menuItems[i]);
+		this->menu[i].setPosition(200.f, 230.f + i * 50.f);
+	}
+
+	if (!this->backgroundMenuTexture.loadFromFile("res/gfx/Fon_menyu.png"))
+	{
+		std::cerr << "Error loading menu background" << std::endl;
+	}
+	this->backgroundMenu.setTexture(this->backgroundMenuTexture);
+
+	if (!this->backgroundInfoTexture.loadFromFile("res/gfx/Fon_igry.png"))
+	{
+		std::cerr << "Error loading info background" << std::endl;
+	}
+	this->backgroundInfo.setTexture(this->backgroundInfoTexture);
+}
+
 void Game::updateCollison()
 {
 	//Left world collison
@@ -342,7 +389,7 @@ void Game::updateCollison()
 	//Right world colliosn
 	else if (this->player->getBounds().left + this->player->getBounds().width >= this->window->getSize().x)
 	{
-		this->player->setPostion(this->window->getSize().x  - this->player->getBounds().width, this->player->getBounds().top);
+		this->player->setPostion(this->window->getSize().x - this->player->getBounds().width, this->player->getBounds().top);
 	}
 
 }
@@ -411,7 +458,7 @@ void Game::updateCombat()
 
 void Game::update()
 {
-	if(this->player->getHp() > 0)
+	if (this->player->getHp() > 0)
 	{
 		this->updateInput();
 
@@ -431,6 +478,40 @@ void Game::update()
 	this->updateWorld();
 }
 
+void Game::processMenuEvents()
+{
+	sf::Event event;
+	while (this->window->pollEvent(event))
+	{
+		if (event.type == sf::Event::Closed)
+			this->window->close();
+
+		if (event.type == sf::Event::KeyPressed)
+		{
+			if (event.key.code == sf::Keyboard::Up)
+			{
+				selectedItem = (selectedItem - 1 + 3) % 3;
+				this->navigateSound.play();
+			}
+			else if (event.key.code == sf::Keyboard::Down)
+			{
+				selectedItem = (selectedItem + 1) % 3;
+				this->navigateSound.play();
+			}
+			else if (event.key.code == sf::Keyboard::Enter)
+			{
+				if (selectedItem == 0)
+					this->state = GameState::PLAYING;
+				else if (selectedItem == 1)
+					this->state = GameState::INFO;
+				else if (selectedItem == 2)
+					this->window->close();
+			}
+		}
+	}
+}
+																																			
+
 
 void Game::renderGUI()
 {
@@ -441,9 +522,56 @@ void Game::renderGUI()
 		this->window->draw(this->playerHpBar);
 	}
 }
+void Game::processInfoEvents()
+{
+	sf::Event event;
+	while (this->window->pollEvent(event))
+	{
+		if (event.type == sf::Event::Closed)
+			this->window->close();
+
+		if (event.type == sf::Event::KeyPressed)
+		{
+			this->state = GameState::MENU;
+		}
+	}
+}
 void Game::renderWorld()
 {
 	this->window->draw(this->worldBackground);
+}
+
+void Game::renderMenu()
+{
+	this->window->clear();
+	this->window->draw(this->backgroundMenu);
+
+	for (int i = 0; i < 3; ++i)
+	{
+		if (i == selectedItem)
+			this->menu[i].setFillColor(sf::Color::Red);
+		else
+			this->menu[i].setFillColor(sf::Color::White);
+
+		this->window->draw(this->menu[i]);
+	}
+
+	this->window->display();
+}
+
+void Game::renderInfo()
+{
+	sf::Text infoText;
+	infoText.setFont(this->font);
+	infoText.setCharacterSize(28);
+	infoText.setFillColor(sf::Color::White);
+	infoText.setString("Author: Yushin Alexander O738B. \n\nCatch all the notes and emoticons.\n\nPress Left - to move left.\n\nPress Right - to move right.\n\nPress any key to return to the menu.");
+	infoText.setPosition(40, 50);
+
+	this->window->clear();
+	this->window->draw(this->backgroundInfo);
+	this->window->draw(infoText);
+	this->window->display();
 }
 
 void Game::render()
